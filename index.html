@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Project 1 Daniel Hauersperger</title>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+
+	<svg id="main" width="900" height="600">
+		<text id='label' x='20' y='20'>Project 1</text>
+		<g transform="translate(40,40)"></g>
+	</svg>
+
+	
+	<script>
+		const MAP_WIDTH = 800,
+            MAP_HEIGHT = 400;
+
+		function drawMap(streets) 
+		{
+            // Get the min and max values from the streets array for x and y
+            const streets_flat = streets.flat();
+            const X_DOMAIN = d3.extent(streets_flat, segment => segment.x),
+                Y_DOMAIN = d3.extent(streets_flat, segment => segment.y);
+
+            const xScale = d3.scale.linear()
+                .domain(X_DOMAIN).range([0, MAP_WIDTH]);
+            const yScale = d3.scale.linear()
+                .domain(Y_DOMAIN).range([MAP_HEIGHT, 0]);
+
+            var g = d3.select('svg').select('g');
+    		g.selectAll('path')
+    			.data(streets)
+    			.enter()
+    			.append('path')
+                .attr('d', function(d){
+                    const start_x = xScale(d[0].x),
+                        start_y = yScale(d[0].y);
+                    // Start a line at the first vertex
+                    let coords = `M ${start_x} ${start_y} `;
+                    
+                    // for all but the first vertex of this street
+                    for(let i = 1; i < d.length; i++){
+                        // add a line from the previous vertex to the current vertex
+                        const current_x = xScale(d[i].x),
+                            current_y = yScale(d[i].y);
+                        coords += `L ${current_x} ${current_y} `;
+                    }
+
+                    return coords;
+                })
+                .attr('stroke', 'black')
+                .attr('fill', 'transparent')
+		}
+		
+        d3.json('streets.json', drawMap);
+
+	</script>
+</body>
+
+
+</html>
