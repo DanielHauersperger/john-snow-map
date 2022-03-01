@@ -36,7 +36,7 @@
             const { xScale, yScale } = getScales(streets);
 
             drawStreets(streets, xScale, yScale);
-            drawPumps(streets, xScale, yScale);
+            drawPumps(pumps, xScale, yScale);
         }
 
         function drawStreets(streets, xScale, yScale) {
@@ -45,7 +45,7 @@
                 .data(streets)
                 .enter()
                 .append('path')
-                .attr('d', function (d) {
+                .attr('d', d => {
                     const start_x = xScale(d[0].x),
                         start_y = yScale(d[0].y);
                     // Start a line at the first vertex
@@ -62,18 +62,29 @@
                     return coords;
                 })
                 .attr('stroke', 'black')
+                .attr('opacity', 0.6)
                 .attr('fill', 'transparent')
         }
 
         function drawPumps(pumps, xScale, yScale) {
-            // TODO: Add logic to draw the pumps
+            var g = d3.select('svg').select('g');
+            g.selectAll('circle')
+                .data(pumps)
+                .enter()
+                .append('circle')
+                .style('fill', 'red')
+                .attr('r', 4)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1)
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y))
         }
 
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
         // isn't supported until v5 (see https://stackoverflow.com/a/49604124)
         d3.json('streets.json', function (streets) {
             d3.csv('pumps.csv', function (pumps) {
-                drawMap(streets);
+                drawMap(streets, pumps);
             });
         });
 
