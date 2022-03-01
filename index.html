@@ -31,12 +31,13 @@
             return { xScale, yScale };
         }
 
-        function drawMap(streets, pumps) {
+        function drawMap(streets, pumps, deaths_age_sex) {
             // Create the (common) scales from the domain of x and y values in streets
             const { xScale, yScale } = getScales(streets);
 
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
+            drawDeathLocations(deaths_age_sex, xScale, yScale);
         }
 
         function drawStreets(streets, xScale, yScale) {
@@ -77,16 +78,35 @@
                 .attr('stroke', 'black')
                 .attr('stroke-width', 1)
                 .attr('cx', d => xScale(d.x))
-                .attr('cy', d => yScale(d.y))
+                .attr('cy', d => yScale(d.y));
+        }
+
+        function drawDeathLocations(deaths_age_sex, xScale, yScale){
+            var g = d3.select('svg').select('g');
+            g.selectAll('circle')
+                .data(deaths_age_sex)
+                .enter()
+                .append('circle')
+                .style('fill', 'blue')
+                .attr('r', 3)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1)
+                .attr('opacity', 0.5)
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y));
         }
 
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
         // isn't supported until v5 (see https://stackoverflow.com/a/49604124)
         d3.json('streets.json', function (streets) {
             d3.csv('pumps.csv', function (pumps) {
-                drawMap(streets, pumps);
-            });
-        });
+                d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
+                    d3.csv('deathdays.csv', function(deathdays){
+                        drawMap(streets, pumps, deaths_age_sex);
+                    })
+                })
+            })
+        })
 
     </script>
 </body>
