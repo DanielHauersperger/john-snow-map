@@ -8,8 +8,12 @@
 
 <body>
 
-    <svg id="main" width="900" height="600">
+    <svg id="map" width="900" height="600">
         <text id='label' x='20' y='20'>Project 1</text>
+        <g transform="translate(40,40)"></g>
+    </svg>
+
+    <svg id="timeGraph" width="900" height="300">
         <g transform="translate(40,40)"></g>
     </svg>
 
@@ -41,7 +45,7 @@
         }
 
         function drawStreets(streets, xScale, yScale) {
-            var g = d3.select('svg').select('g');
+            var g = d3.select('#map').select('g');
             g.selectAll('path')
                 .data(streets)
                 .enter()
@@ -68,7 +72,7 @@
         }
 
         function drawPumps(pumps, xScale, yScale) {
-            var g = d3.select('svg').select('g');
+            var g = d3.select('#map').select('g');
             g.selectAll('circle')
                 .data(pumps)
                 .enter()
@@ -82,7 +86,7 @@
         }
 
         function drawDeathLocations(deaths_age_sex, xScale, yScale){
-            var g = d3.select('svg').select('g');
+            var g = d3.select('#map').select('g');
             g.selectAll('circle')
                 .data(deaths_age_sex)
                 .enter()
@@ -96,6 +100,29 @@
                 .attr('cy', d => yScale(d.y));
         }
 
+        function drawTimeGraph(deathdays){
+            // Add a key for the parsed date for each row
+            deathdays = deathdays.map(day => {
+                // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
+                return {
+                    ...day,
+                    date_parsed: d3.time.format("%d-%b-%Y").parse(day.date + '-1854')
+                };
+            });
+                        
+            const X_DOMAIN = d3.extent(deathdays, day => day.date_parsed),
+                Y_DOMAIN = d3.extent(deathdays, day => day.deaths);
+
+            const xScale = d3.time.scale()
+                .domain(X_DOMAIN)
+                .range([0, MAP_WIDTH]);
+            const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+            var g = d3.select('#timeGraph').select('g');
+            g.append("g").attr("class", "x axis")
+                .call(xAxis)
+        }
+
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
         // isn't supported until v5 (see https://stackoverflow.com/a/49604124)
         d3.json('streets.json', function (streets) {
@@ -103,6 +130,7 @@
                 d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
                     d3.csv('deathdays.csv', function(deathdays){
                         drawMap(streets, pumps, deaths_age_sex);
+                        drawTimeGraph(deathdays);
                     })
                 })
             })
