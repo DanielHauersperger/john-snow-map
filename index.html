@@ -6,6 +6,19 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
 </head>
 
+<style>
+    /* css styling from https://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 */
+    body { font: 12px Arial; }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: grey;
+        stroke-width: 1;
+        shape-rendering: crispEdges;
+    }
+</style>    
+
 <body>
 
     <svg id="map" width="900" height="600">
@@ -116,11 +129,24 @@
             const xScale = d3.time.scale()
                 .domain(X_DOMAIN)
                 .range([0, MAP_WIDTH]);
-            const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+            const xAxis = d3.svg.axis()
+                .scale(xScale)
+                .ticks(d3.time.day)
+                // Display tick label for every other day (surely there is a nicer way to do this)
+                // I would have used ticks(d3.time.day, 2), but I wanted the non-labeled days to have tick marks
+                .tickFormat(x => {
+                    const dayOfYear = d3.time.format("%j")(x);
+                    return dayOfYear % 2 == 0 ? "" : d3.time.format("%b %d")(x);
+                })
+                .orient("bottom");
 
             var g = d3.select('#timeGraph').select('g');
             g.append("g").attr("class", "x axis")
                 .call(xAxis)
+                // axis text rotation logic (following three lines) modified from https://stackoverflow.com/a/35449652
+                .selectAll('text')
+                    .style('text-anchor', 'start')
+                    .attr('transform', 'rotate(55 0 12)')
         }
 
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
