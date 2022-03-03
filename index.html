@@ -7,7 +7,7 @@
 </head>
 
 <style>
-    /* css styling from https://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 */
+    /* below css styling from https://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 */
     body { font: 12px Arial; }
 
     .axis path,
@@ -15,6 +15,22 @@
         fill: none;
         stroke: grey;
         stroke-width: 1;
+        shape-rendering: crispEdges;
+    }
+
+    /* below css styling modified from https://stackoverflow.com/a/46861080 */
+    .selected {
+        fill: steelblue;
+        fill-opacity: 1;
+    }
+
+    .axis {
+        font: 12px Arial;
+    }
+
+    .extent {
+        stroke: white;
+        fill-opacity: .125;
         shape-rendering: crispEdges;
     }
 </style>    
@@ -33,7 +49,9 @@
 
     <script>
         const MAP_WIDTH = 800,
-            MAP_HEIGHT = 400;
+            MAP_HEIGHT = 400,
+            TIME_GRAPH_HEIGHT = 200,
+            BAR_WIDTH = 12;
 
         function getScales(streets) {
             // Get the min and max values from the streets array for x and y
@@ -119,30 +137,80 @@
                 // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
                 return {
                     ...day,
-                    date_parsed: d3.time.format("%d-%b-%Y").parse(day.date + '-1854')
+                    date_parsed: d3.time.format('%d-%b-%Y').parse(day.date + '-1854'),
+                    deaths_num: +day.deaths
                 };
             });
                         
             const X_DOMAIN = d3.extent(deathdays, day => day.date_parsed),
-                Y_DOMAIN = d3.extent(deathdays, day => day.deaths);
+                Y_DOMAIN = d3.extent(deathdays, day => day.deaths_num);
 
             const xScale = d3.time.scale()
                 .domain(X_DOMAIN)
                 .range([0, MAP_WIDTH]);
+            const yScale = d3.scale.linear()
+                .domain(Y_DOMAIN)
+                .range([0, TIME_GRAPH_HEIGHT]);
             const xAxis = d3.svg.axis()
                 .scale(xScale)
                 .ticks(d3.time.day)
                 // Display tick label for every other day (surely there is a nicer way to do this)
                 // I would have used ticks(d3.time.day, 2), but I wanted the non-labeled days to have tick marks
                 .tickFormat(x => {
-                    const dayOfYear = d3.time.format("%j")(x);
-                    return dayOfYear % 2 == 0 ? "" : d3.time.format("%b %d")(x);
+                    const dayOfYear = d3.time.format('%j')(x);
+                    return dayOfYear % 2 == 0 ? '' : d3.time.format('%b %d')(x);
                 })
-                .orient("bottom");
+                .orient('bottom');
 
             var g = d3.select('#timeGraph').select('g');
-            g.append("g").attr("class", "x axis")
+
+            // brushing logic below (~40 lines) is modified from https://stackoverflow.com/a/46861080
+            const brush = d3.svg.brush()
+                .x(xScale)
+                .extent(X_DOMAIN) // default extent to the full domain
+                .on('brush', brushed)
+
+            const bar = g.append('g')
+                .attr('fill-opacity', 0.2)
+                .selectAll('rect')
+                .data(deathdays)
+                .enter()
+                .append('rect')
+                .attr('height', d => yScale(d.deaths_num))
+                .attr('width', BAR_WIDTH)
+                .attr('x', d => xScale(d.date_parsed) - BAR_WIDTH/2)
+                .attr('y', d => TIME_GRAPH_HEIGHT - yScale(d.deaths_num));
+
+            const brushContainer = g.append('g')
+                .attr('class', 'brush')
+                .call(brush)
+                .call(brush.event);
+
+            brushContainer.selectAll('rect')
+                .attr('height', TIME_GRAPH_HEIGHT);
+
+            brushContainer.selectAll('.background')
+                .on('mousedown', beforebrushed, true)
+                .on('touchstart', beforebrushed, true);
+
+            function brushed() {
+                const extent = brush.extent();
+
+                bar.classed('selected', d => { return extent[0] <= d.date_parsed && d.date_parsed <= extent[1]; });
+            }
+
+            function beforebrushed() {
+                d3.event.stopImmediatePropagation();
+
+                brushContainer.transition()
+                    .duration(700)
+                    .call(brush.extent(X_DOMAIN))
+                    .call(brush.event);
+            }
+
+            g.append('g').attr('class', 'x axis')
                 .call(xAxis)
+                .attr('transform', `translate(0, ${TIME_GRAPH_HEIGHT})`)
                 // axis text rotation logic (following three lines) modified from https://stackoverflow.com/a/35449652
                 .selectAll('text')
                     .style('text-anchor', 'start')
