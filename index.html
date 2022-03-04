@@ -139,17 +139,7 @@
             return updateDeathLocations;
         }
 
-        function drawTimeGraph(deathdays, updateFunctions) {
-            // Add a key for the parsed date for each row
-            deathdays = deathdays.map(day => {
-                // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
-                return {
-                    ...day,
-                    date_parsed: d3.time.format('%d-%b-%Y').parse(day.date + '-1854'),
-                    deaths_num: +day.deaths
-                };
-            });
-                        
+        function drawTimeGraph(deathdays, updateFunctions) {                        
             const X_DOMAIN = d3.extent(deathdays, day => day.date_parsed),
                 Y_DOMAIN = d3.extent(deathdays, day => day.deaths_num);
 
@@ -232,6 +222,18 @@
                     .attr('transform', 'rotate(55 0 12)')
         }
 
+        function parseDeathdays(deathdays) {
+            // Add keys for the parsed date and deaths as a number to each row
+            return deathdays.map(day => {
+                // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
+                return {
+                    ...day,
+                    date_parsed: d3.time.format('%d-%b-%Y').parse(day.date + '-1854'),
+                    deaths_num: +day.deaths
+                };
+            });
+        }
+
         function addDeathDate(deaths_age_sex, deathdays) {
             const deaths_age_sex_date = [];
             // deaths_age_sex is in order of each date of death
@@ -239,16 +241,16 @@
             for (deathDay of deathdays){
                 let rows_added = 0;
                 while(rows_added < deathdays){
-                    deaths_age_sex.append({
+                    deaths_age_sex_date.append({
                         ...deaths_age_sex[i],
-                        date_parsed: d3.time.format('%d-%b-%Y').parse(deathDay.date + '-1854')
+                        date_parsed: deathDay.date_parsed
                     });
                     i++;
                     rows_added++;
                 }
             }
 
-            return deaths_age_sex;
+            return deaths_age_sex_date;
         }
 
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
@@ -257,10 +259,13 @@
             d3.csv('pumps.csv', function (pumps) {
                 d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
                     d3.csv('deathdays.csv', function(deathdays) {
-                        const deaths_age_sex_date = addDeathDate(deaths_age_sex, deathdays);
+                        // clean and join the data
+                        const deathdays_parsed = parseDeathdays(deathdays);
+                        const deaths_age_sex_date = addDeathDate(deaths_age_sex, deathdays_parsed);
 
+                        // now draw the map and graph
                         const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex_date);
-                        drawTimeGraph(deathdays, [updateDeathLocations]);
+                        drawTimeGraph(deathdays_parsed, [updateDeathLocations]);
                     })
                 })
             })
