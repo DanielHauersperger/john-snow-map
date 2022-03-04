@@ -37,21 +37,23 @@
 </style>    
 
 <body>
-    <svg transform="translate(40,20)" width="900" height="940">
-        <g id='map' height="640">
+    <div>
+        <svg transform="translate(40,40)" id="map" width="900" height="640">
             <g id='scrollArea'>
                 <!-- Style applied so empty parts of map are clickable - credit goes to https://stackoverflow.com/a/49739738 -->
-                <rect fill='transparent' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='640px''></rect>
+                <rect fill='transparent' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
                 <g transform="translate(25,35)" id='mapContent' style="pointer-events: bounding-box;"></g>
             </g>
             <rect fill='white' stroke='black' stroke-width='2px' x='270px' y='8px' width='40%' height='30px''></rect>
             <text id='mapName' x='50%' y='30px' text-anchor='middle' font-size="24px">London 1854 Cholera Epidemic</text>
-        </g>
+        </svg>
+    </div>
 
-        <g transform="translate(40,660)" id="timeGraph" height="300">
-        </g>
-    </svg>
-
+    </div>
+        <svg transform="translate(40,20)" id="timeGraph" width="900" height="300">
+            <g transform="translate(40,40)"></g>
+        </svg>
+    </div>
 
     <script>
         const MAP_WIDTH = 850,
@@ -180,7 +182,7 @@
                 })
                 .orient('bottom');
 
-            var g = d3.select('#timeGraph');
+            var g = d3.select('#timeGraph').select('g');
 
             // brushing logic below (~45 lines) is modified from https://stackoverflow.com/a/46861080
             // the idea to call all passed update functions in brushed() was mine though :) 
