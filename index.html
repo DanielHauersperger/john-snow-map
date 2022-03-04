@@ -38,25 +38,26 @@
 
 <body>
     <div>
-        <svg transform="translate(40,40)" id="map" width="900" height="640">
+        <svg transform="translate(40,40)" id="map" width="640" height="638">
             <g id='scrollArea'>
                 <!-- Style applied so empty parts of map are clickable - credit goes to https://stackoverflow.com/a/49739738 -->
                 <rect fill='transparent' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
-                <g transform="translate(25,35)" id='mapContent' style="pointer-events: bounding-box;"></g>
+                <g transform="translate(0,35)" id='mapContent' style="pointer-events: bounding-box;"></g>
+                <!-- "translate(25,35)" -->
             </g>
-            <rect fill='white' stroke='black' stroke-width='2px' x='270px' y='8px' width='40%' height='30px''></rect>
+            <rect fill='white' stroke='black' stroke-width='2px' x='149px' y='8px' width='345' height='30px''></rect>
             <text id='mapName' x='50%' y='30px' text-anchor='middle' font-size="24px">London 1854 Cholera Epidemic</text>
         </svg>
     </div>
 
     </div>
         <svg transform="translate(40,20)" id="timeGraph" width="900" height="300">
-            <g transform="translate(40,40)"></g>
+            <g transform="translate(0,40)"></g>
         </svg>
     </div>
 
     <script>
-        const MAP_WIDTH = 850,
+        const MAP_WIDTH = 640,
             MAP_HEIGHT = 600,
             TIME_GRAPH_HEIGHT = 200,
             BAR_WIDTH = 12;
