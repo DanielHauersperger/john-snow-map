@@ -72,7 +72,8 @@
 
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
-            drawDeathLocations(deaths_age_sex, xScale, yScale);
+            const updateDeathLocations = drawDeathLocations(deaths_age_sex, xScale, yScale);
+            return updateDeathLocations;
         }
 
         function drawStreets(streets, xScale, yScale) {
@@ -117,8 +118,10 @@
         }
 
         function drawDeathLocations(deaths_age_sex, xScale, yScale){
+            // draw all death locations at first, and return a function to show/hide
+            // them based on what times are selected
             var g = d3.select('#map').select('g');
-            g.selectAll('circle')
+            const deathLocations = g.selectAll('circle')
                 .data(deaths_age_sex)
                 .enter()
                 .append('circle')
@@ -129,9 +132,14 @@
                 .attr('opacity', 0.5)
                 .attr('cx', d => xScale(d.x))
                 .attr('cy', d => yScale(d.y));
+            
+            const updateDeathLocations = function(extent){
+                // TODO
+            }
+            return updateDeathLocations;
         }
 
-        function drawTimeGraph(deathdays){
+        function drawTimeGraph(deathdays, updateFunctions){
             // Add a key for the parsed date for each row
             deathdays = deathdays.map(day => {
                 // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
@@ -165,6 +173,7 @@
             var g = d3.select('#timeGraph').select('g');
 
             // brushing logic below (~40 lines) is modified from https://stackoverflow.com/a/46861080
+            // the idea to call all passed update functions in brushed() was mine though :) 
             const brush = d3.svg.brush()
                 .x(xScale)
                 .extent(X_DOMAIN) // default extent to the full domain
@@ -197,6 +206,12 @@
                 const extent = brush.extent();
 
                 bar.classed('selected', d => { return extent[0] <= d.date_parsed && d.date_parsed <= extent[1]; });
+                
+                // I didn't like the idea of this function containing the logic for updating other graphs, since I 
+                // would have to update it when I add more dependent graphs. So instead just call any passed update functions 
+                for(f of updateFunctions){
+                    f();
+                }
             }
 
             function beforebrushed() {
@@ -223,8 +238,8 @@
             d3.csv('pumps.csv', function (pumps) {
                 d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
                     d3.csv('deathdays.csv', function(deathdays){
-                        drawMap(streets, pumps, deaths_age_sex);
-                        drawTimeGraph(deathdays);
+                        const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex);
+                        drawTimeGraph(deathdays, [updateDeathLocations]);
                     })
                 })
             })
