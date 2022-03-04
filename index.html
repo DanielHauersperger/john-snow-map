@@ -53,7 +53,7 @@
             TIME_GRAPH_HEIGHT = 200,
             BAR_WIDTH = 12;
 
-        function getScales(streets) {
+        function getMapScales(streets) {
             // Get the min and max values from the streets array for x and y
             const streets_flat = streets.flat();
             const X_DOMAIN = d3.extent(streets_flat, segment => segment.x),
@@ -68,7 +68,7 @@
 
         function drawMap(streets, pumps, deaths_age_sex) {
             // Create the (common) scales from the domain of x and y values in streets
-            const { xScale, yScale } = getScales(streets);
+            const { xScale, yScale } = getMapScales(streets);
 
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
@@ -117,7 +117,7 @@
                 .attr('cy', d => yScale(d.y));
         }
 
-        function drawDeathLocations(deaths_age_sex, xScale, yScale){
+        function drawDeathLocations(deaths_age_sex, xScale, yScale) {
             // draw all death locations at first, and return a function to show/hide
             // them based on what times are selected
             var g = d3.select('#map').select('g');
@@ -139,7 +139,7 @@
             return updateDeathLocations;
         }
 
-        function drawTimeGraph(deathdays, updateFunctions){
+        function drawTimeGraph(deathdays, updateFunctions) {
             // Add a key for the parsed date for each row
             deathdays = deathdays.map(day => {
                 // This data is from 1854, so I add '-1854' to the end of each date string to specify the year
@@ -163,7 +163,7 @@
                 .scale(xScale)
                 .ticks(d3.time.day)
                 // Display tick label for every other day (surely there is a nicer way to do this)
-                // I would have used ticks(d3.time.day, 2), but I wanted the non-labeled days to have tick marks
+                // I would have used ticks(d3.time.day, 2), but I wanted the non-labeled days to have tick marks too
                 .tickFormat(x => {
                     const dayOfYear = d3.time.format('%j')(x);
                     return dayOfYear % 2 == 0 ? '' : d3.time.format('%b %d')(x);
@@ -232,13 +232,34 @@
                     .attr('transform', 'rotate(55 0 12)')
         }
 
+        function addDeathDate(deaths_age_sex, deathdays) {
+            const deaths_age_sex_date = [];
+            // deaths_age_sex is in order of each date of death
+            let i = 0;
+            for (deathDay of deathdays){
+                let rows_added = 0;
+                while(rows_added < deathdays){
+                    deaths_age_sex.append({
+                        ...deaths_age_sex[i],
+                        date_parsed: d3.time.format('%d-%b-%Y').parse(deathDay.date + '-1854')
+                    });
+                    i++;
+                    rows_added++;
+                }
+            }
+
+            return deaths_age_sex;
+        }
+
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
         // isn't supported until v5 (see https://stackoverflow.com/a/49604124)
         d3.json('streets.json', function (streets) {
             d3.csv('pumps.csv', function (pumps) {
                 d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
-                    d3.csv('deathdays.csv', function(deathdays){
-                        const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex);
+                    d3.csv('deathdays.csv', function(deathdays) {
+                        const deaths_age_sex_date = addDeathDate(deaths_age_sex, deathdays);
+
+                        const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex_date);
                         drawTimeGraph(deathdays, [updateDeathLocations]);
                     })
                 })
