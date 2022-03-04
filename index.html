@@ -234,14 +234,14 @@
             });
         }
 
-        function addDeathDate(deaths_age_sex, deathdays) {
+        function addDeathDate(deaths_age_sex, deathdays_parsed) {
             const deaths_age_sex_date = [];
             // deaths_age_sex is in order of each date of death
             let i = 0;
-            for (deathDay of deathdays){
+            for (const deathDay of deathdays_parsed){
                 let rows_added = 0;
-                while(rows_added < deathdays){
-                    deaths_age_sex_date.append({
+                while(rows_added < deathDay.deaths_num){
+                    deaths_age_sex_date.push({
                         ...deaths_age_sex[i],
                         date_parsed: deathDay.date_parsed
                     });
