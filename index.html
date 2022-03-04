@@ -224,7 +224,26 @@
                 // axis text rotation logic (following three lines) modified from https://stackoverflow.com/a/35449652
                 .selectAll('text')
                     .style('text-anchor', 'start')
-                    .attr('transform', 'rotate(55 0 12)')
+                    .attr('transform', 'rotate(55 0 12)');
+
+            let previousExtent = [];
+            d3.selectAll('.tick').on('mouseover', function(d, i){
+                previousExtent = brush.extent();
+                // When an axis tick is moused over, select all data up to the selected date
+                brushContainer.transition()
+                    .duration(300)
+                    .call(brush.extent([X_DOMAIN[0], d]))
+                    .call(brush.event);
+            }).on('mouseout', function(d, i){
+                // When mouseover stops, go back to the selection (previousExtent) before the mouseover
+                brushContainer.transition()
+                    .duration(300)
+                    .call(brush.extent(previousExtent))
+                    .call(brush.event);
+            }).on('click', function(d, i){
+                // When an axis tick is clicked, don't go back to the previous selection on mouseout
+                previousExtent = brush.extent();
+            });
         }
 
         function parseDeathdays(deathdays) {
