@@ -38,9 +38,12 @@
 
 <body>
 
-    <svg id="map" width="900" height="600">
-        <text id='label' x='20' y='20'>Project 1</text>
-        <g transform="translate(40,40)"></g>
+    <svg id="map" width="900" height="640">
+        <text id='mapName' x='50%' y='30px' text-anchor='middle' font-size="24px">London 1854 Cholera Epidemic</text>
+        <g transform="translate(40,40)" id='scrollArea'>
+            <!-- Style applied so empty parts of map are clickable - credit goes to https://stackoverflow.com/a/49739738 -->
+            <g id='mapContent' style="pointer-events: bounding-box;"></g>
+        </g>
     </svg>
 
     <svg id="timeGraph" width="900" height="300">
@@ -49,8 +52,8 @@
 
 
     <script>
-        const MAP_WIDTH = 800,
-            MAP_HEIGHT = 400,
+        const MAP_WIDTH = 850,
+            MAP_HEIGHT = 600,
             TIME_GRAPH_HEIGHT = 200,
             BAR_WIDTH = 12;
 
@@ -78,7 +81,17 @@
         }
 
         function drawStreets(streets, xScale, yScale) {
-            var g = d3.select('#map').select('g');
+            // enable zooming on the map
+            var scrollArea = d3.select('#scrollArea');
+            var g = d3.select('#mapContent')
+            // Below six lines modified from https://embed.plnkr.co/q2gv0VOI5cAmfpyNXEVA/
+            scrollArea.call(d3.behavior.zoom()
+                .on("zoom", function () {
+                    console.log(d3.event);
+                    // Credit for transforming only the child <g> goes to https://stackoverflow.com/a/10999391
+                    g.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+            }))
+
             g.selectAll('path')
                 .data(streets)
                 .enter()
@@ -105,7 +118,7 @@
         }
 
         function drawPumps(pumps, xScale, yScale) {
-            var g = d3.select('#map').select('g');
+            var g = d3.select('#mapContent');
             g.selectAll('circle.pump')
                 .data(pumps)
                 .enter()
@@ -122,7 +135,7 @@
         function drawDeathLocations(deaths_age_sex_date, xScale, yScale) {
             // draw all death locations at first, and return a function to show/hide
             // them based on what times are selected
-            var g = d3.select('#map').select('g');
+            var g = d3.select('#mapContent');
             const deathLocations = g.selectAll('circle.deathLocation')
                 .data(deaths_age_sex_date)
                 .enter()
@@ -138,7 +151,7 @@
             deathLocations.append("title") // tooltip
                 .text(d => `Age: ${d.age}\nSex: ${d.sex}`);
             
-            const updateDeathLocations = function(extent){
+            const updateDeathLocations = function(extent) {
                 deathLocations.classed('selected', d => { return extent[0] <= d.date_parsed && d.date_parsed <= extent[1]; });
             }
             return updateDeathLocations;
