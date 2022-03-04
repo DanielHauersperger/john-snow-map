@@ -134,7 +134,9 @@
                 .attr('opacity', 0.1)
                 .attr('cx', d => xScale(d.x))
                 .attr('cy', d => yScale(d.y))
-                .attr('class', 'deathLocation selected');
+                .attr('class', 'deathLocation');
+            deathLocations.append("title") // tooltip
+                .text(d => `Age: ${d.age}\nSex: ${d.sex}`);
             
             const updateDeathLocations = function(extent){
                 deathLocations.classed('selected', d => { return extent[0] <= d.date_parsed && d.date_parsed <= extent[1]; });
@@ -165,7 +167,7 @@
 
             var g = d3.select('#timeGraph').select('g');
 
-            // brushing logic below (~40 lines) is modified from https://stackoverflow.com/a/46861080
+            // brushing logic below (~45 lines) is modified from https://stackoverflow.com/a/46861080
             // the idea to call all passed update functions in brushed() was mine though :) 
             const brush = d3.svg.brush()
                 .x(xScale)
@@ -202,7 +204,7 @@
                 
                 // I didn't like the idea of this function containing the logic for updating other graphs, since I 
                 // would have to update it when I add more dependent graphs. So instead just call any passed update functions 
-                for(f of updateFunctions){
+                for(const f of updateFunctions){
                     f(extent);
                 }
             }
@@ -246,6 +248,7 @@
                 while(rows_added < deathDay.deaths_num){
                     deaths_age_sex_date.push({
                         ...deaths_age_sex[i],
+                        sex: (+deaths_age_sex[i].gender ? 'Female' : 'Male'), // assignment specified gender=1 is female, gender=0 is male
                         date_parsed: deathDay.date_parsed
                     });
                     i++;
