@@ -21,6 +21,7 @@
     /* below css styling modified from https://stackoverflow.com/a/46861080 */
     .selected {
         fill: steelblue;
+        opacity: 1;
         fill-opacity: 1;
     }
 
@@ -30,7 +31,7 @@
 
     .extent {
         stroke: white;
-        fill-opacity: .125;
+        opacity: .125;
         shape-rendering: crispEdges;
     }
 </style>    
@@ -66,13 +67,13 @@
             return { xScale, yScale };
         }
 
-        function drawMap(streets, pumps, deaths_age_sex) {
+        function drawMap(streets, pumps, deaths_age_sex_date) {
             // Create the (common) scales from the domain of x and y values in streets
             const { xScale, yScale } = getMapScales(streets);
 
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
-            const updateDeathLocations = drawDeathLocations(deaths_age_sex, xScale, yScale);
+            const updateDeathLocations = drawDeathLocations(deaths_age_sex_date, xScale, yScale);
             return updateDeathLocations;
         }
 
@@ -105,7 +106,7 @@
 
         function drawPumps(pumps, xScale, yScale) {
             var g = d3.select('#map').select('g');
-            g.selectAll('circle')
+            g.selectAll('circle.pump')
                 .data(pumps)
                 .enter()
                 .append('circle')
@@ -114,27 +115,29 @@
                 .attr('stroke', 'black')
                 .attr('stroke-width', 1)
                 .attr('cx', d => xScale(d.x))
-                .attr('cy', d => yScale(d.y));
+                .attr('cy', d => yScale(d.y))
+                .attr('class', 'pump');
         }
 
-        function drawDeathLocations(deaths_age_sex, xScale, yScale) {
+        function drawDeathLocations(deaths_age_sex_date, xScale, yScale) {
             // draw all death locations at first, and return a function to show/hide
             // them based on what times are selected
             var g = d3.select('#map').select('g');
-            const deathLocations = g.selectAll('circle')
-                .data(deaths_age_sex)
+            const deathLocations = g.selectAll('circle.deathLocation')
+                .data(deaths_age_sex_date)
                 .enter()
                 .append('circle')
-                .style('fill', 'blue')
+                .attr('fill', 'steel-blue')
                 .attr('r', 3)
                 .attr('stroke', 'black')
                 .attr('stroke-width', 1)
-                .attr('opacity', 0.5)
+                .attr('opacity', 0.1)
                 .attr('cx', d => xScale(d.x))
-                .attr('cy', d => yScale(d.y));
+                .attr('cy', d => yScale(d.y))
+                .attr('class', 'deathLocation selected');
             
             const updateDeathLocations = function(extent){
-                // TODO
+                deathLocations.classed('selected', d => { return extent[0] <= d.date_parsed && d.date_parsed <= extent[1]; });
             }
             return updateDeathLocations;
         }
@@ -200,7 +203,7 @@
                 // I didn't like the idea of this function containing the logic for updating other graphs, since I 
                 // would have to update it when I add more dependent graphs. So instead just call any passed update functions 
                 for(f of updateFunctions){
-                    f();
+                    f(extent);
                 }
             }
 
