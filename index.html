@@ -39,6 +39,14 @@
 <body>
     <!-- I used inline styles for convenience; of course I would not do this in production -->
     <div style="display: flex; justify-content: center;">
+        <div style="height:8px">
+            <input type="checkbox" id="toggleLabels"/input>
+            <label for="toggleLabels">Show Labels</label>
+            <input type="checkbox" id="toggleGrid"/input>
+            <label for="toggleGrid">Show Grid</label>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: center;">
         <div style="width: 680px; height: 678; display: inline-block"">
             <svg transform="translate(40,20)" id="map" width="640" height="638">
                 <g id='scrollArea'>
@@ -62,8 +70,8 @@
 
     <div style="display: flex; justify-content: center;">
         <div>
-            <svg transform="translate(40,20)" id="timeGraph" width="800" height="300">
-                <g transform="translate(40,40)"></g>
+            <svg transform="translate(40,40)" id="timeGraph" width="800" height="300">
+                <g></g>
             </svg>
         </div>
     </div>
