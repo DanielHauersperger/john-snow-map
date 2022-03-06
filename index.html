@@ -39,16 +39,16 @@
 <body>
     <!-- I used inline styles for convenience; of course I would not do this in production -->
     <div style="display: flex; justify-content: center;">
-        <div style="height:8px">
-            <input type="checkbox" id="toggleLabels"/input>
+        <div style="height:17px">
+            <input type="checkbox" id="toggleLabels" value="toggleLabels" onclick="toggleLabels(this.checked)" /input>
             <label for="toggleLabels">Show Labels</label>
-            <input type="checkbox" id="toggleGrid"/input>
+            <input type="checkbox" id="toggleGrid" value="toggleGrid"/input>
             <label for="toggleGrid">Show Grid</label>
         </div>
     </div>
     <div style="display: flex; justify-content: center;">
         <div style="width: 680px; height: 678; display: inline-block"">
-            <svg transform="translate(40,20)" id="map" width="640" height="638">
+            <svg transform="translate(40,10)" id="map" width="640" height="638">
                 <g id='scrollArea'>
                     <!-- Style applied so empty parts of map are clickable - credit goes to https://stackoverflow.com/a/49739738 -->
                     <rect fill='transparent' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
@@ -102,11 +102,17 @@
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
             const updateDeathLocations = drawDeathLocations(deaths_age_sex_date, xScale, yScale);
+
             manuallyAddLabels();
+            toggleLabels(false); // start with the labels hidden
+            
             return updateDeathLocations;
         }
 
         function manuallyAddLabels() {
+            var g = d3.select('#mapContent')
+                .append('g')
+                .attr('id', 'labels');
             addLabel('Broad Street', 373, 258, -25);
             addLabel('Regent Street', 167, 298, 60);
             addLabel('Oxford Street', 270, 78, -10);
@@ -114,11 +120,10 @@
             addLabel('Work', 280, 203, 0);
             addLabel('House', 280, 218, 0);
             addLabel('Brewery', 398, 254, 65);
-
         }
         
-        function addLabel(txt, x, y, a){
-            var g = d3.select('#mapContent')
+        function addLabel(txt, x, y, a) {
+            var g = d3.select('#labels');
             // A dreadful hack based on https://stackoverflow.com/a/41902064 to simulate a background for the text element
             const rotate = `rotate(${a}, ${x}, ${y})`;
             g.append('text')
@@ -133,6 +138,12 @@
                 .attr('x', x)
                 .attr('y', y)
                 .attr('style', 'fill:black;');
+        }
+
+        function toggleLabels(checked) {
+            var g = d3.select('#labels');
+            g.selectAll('text')
+                .attr('opacity', +checked);
         }
 
 
