@@ -39,11 +39,19 @@
 <body>
     <!-- I used inline styles for convenience; of course I would not do this in production -->
     <div style="display: flex; justify-content: center;">
-        <div style="height:17px">
-            <input type="checkbox" id="toggleLabels" value="toggleLabels" onclick="toggleLabels(this.checked)" /input>
-            <label for="toggleLabels">Show Labels</label>
-            <input type="checkbox" id="toggleGrid" value="toggleGrid"/input>
-            <label for="toggleGrid">Show Grid</label>
+        <div style="height:17px; width: 480px; display: flex; justify-content: space-between;">
+            <div>
+                <input type="checkbox" id="toggleLabels" value="toggleLabels" onclick="toggleLabels(this.checked)" /input>
+                <label for="toggleLabels">Show Labels</label>
+            </div>
+            <div>
+                <input type="checkbox" id="toggleGrid" value="toggleGrid" onclick="toggleGrid(this.checked)" /input>
+                <label for="toggleGrid">Show Grid</label>
+                <input type="range" id="cellSize" min="10" max="200" step="10" oninput="drawGrid(this.value)">
+                <label for="cellSize">Grid Cell Size</label>
+            </div>
+        </div>
+        <div style="width: 340px;">
         </div>
     </div>
     <div style="display: flex; justify-content: center;">
@@ -59,10 +67,10 @@
             </svg>
         </div>
         <div style="width: 340px; display: inline-block">
-            <svg transform="translate(40,40)" width="300" height="300">
+            <svg id='deathsBySex' transform="translate(40,40)" width="300" height="300">
                 <rect fill='black' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
             </svg>
-            <svg transform="translate(40,80)" width="300" height="300">
+            <svg id='deathsByAge' transform="translate(40,80)" width="300" height="300">
                 <rect fill='blue' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
             </svg>
         </div>  
@@ -142,6 +150,22 @@
             d3.selectAll('.labels').remove();
         }
 
+        function drawGrid(cellSize) {
+            // Remove any existing boxes
+            d3.selectAll('.grid').remove();         
+            
+            // Draw the boxes
+            // TODO
+        }
+
+        function toggleGrid(checked) {
+            if (checked) {
+                const cellSize = window.document.getElementById('cellSize').value;
+                return drawGrid(cellSize);
+            }
+            d3.selectAll('.grid').remove();
+        }
+
 
         function drawStreets(streets, xScale, yScale) {
             // enable zooming on the map
@@ -150,7 +174,6 @@
             // Below six lines modified from https://embed.plnkr.co/q2gv0VOI5cAmfpyNXEVA/
             scrollArea.call(d3.behavior.zoom()
                 .on("zoom", function () {
-                    console.log(d3.event);
                     // Credit for transforming only the child <g> goes to https://stackoverflow.com/a/10999391
                     g.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
             }))
@@ -309,6 +332,7 @@
                     .style('text-anchor', 'start')
                     .attr('transform', 'rotate(55 0 12)');
 
+            // I thought it would be cool if the user could select times by hovering over parts of the axis
             let previousExtent = [];
             d3.selectAll('.tick').on('mouseover', function(d, i){
                 previousExtent = brush.extent();
