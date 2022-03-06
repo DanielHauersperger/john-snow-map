@@ -101,18 +101,11 @@
 
             drawStreets(streets, xScale, yScale);
             drawPumps(pumps, xScale, yScale);
-            const updateDeathLocations = drawDeathLocations(deaths_age_sex_date, xScale, yScale);
-
-            manuallyAddLabels();
-            toggleLabels(false); // start with the labels hidden
-            
+            const updateDeathLocations = drawDeathLocations(deaths_age_sex_date, xScale, yScale);            
             return updateDeathLocations;
         }
 
         function manuallyAddLabels() {
-            var g = d3.select('#mapContent')
-                .append('g')
-                .attr('id', 'labels');
             addLabel('Broad Street', 373, 258, -25);
             addLabel('Regent Street', 167, 298, 60);
             addLabel('Oxford Street', 270, 78, -10);
@@ -123,7 +116,7 @@
         }
         
         function addLabel(txt, x, y, a) {
-            var g = d3.select('#labels');
+            var g = d3.select('#mapContent');
             // A dreadful hack based on https://stackoverflow.com/a/41902064 to simulate a background for the text element
             const rotate = `rotate(${a}, ${x}, ${y})`;
             g.append('text')
@@ -131,19 +124,22 @@
                 .attr('transform', rotate)
                 .attr('x', x)
                 .attr('y', y)
+                .attr('class', 'labels')
                 .attr('style', 'stroke:white; stroke-width:0.6em;');
             g.append('text')
                 .text(txt)
                 .attr('transform', rotate)
                 .attr('x', x)
                 .attr('y', y)
+                .attr('class', 'labels')
                 .attr('style', 'fill:black;');
         }
 
         function toggleLabels(checked) {
-            var g = d3.select('#labels');
-            g.selectAll('text')
-                .attr('opacity', +checked);
+            if (checked) {
+                return manuallyAddLabels();
+            }
+            d3.selectAll('.labels').remove();
         }
 
 
@@ -160,9 +156,9 @@
             }))
 
             // this is what I used to figure out where the streets are
-            g.on('click', function(){
-                console.log(d3.mouse(this))
-            });
+            // g.on('click', function(){
+            //     console.log(d3.mouse(this))
+            // });
 
             g.selectAll('path')
                 .data(streets)
