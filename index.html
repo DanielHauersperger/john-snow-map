@@ -7,6 +7,10 @@
 </head>
 
 <style>
+    a {
+        font: 16px Arial;
+    }
+
     /* below css styling from https://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 */
     body { font: 12px Arial; }
 
@@ -40,16 +44,18 @@
     <!-- I used inline styles for convenience; of course I would not do this in production -->
     <div style="display: flex; justify-content: center;">
         <div style="height:17px; width: 480px; display: flex; justify-content: space-between;">
+            <a href="documentation.html">About Page</a>
+            <a href="https://www.youtube.com/">Demo on YouTube</a>
             <div>
                 <input type="checkbox" id="toggleLabels" value="toggleLabels" onclick="toggleLabels(this.checked)" /input>
                 <label for="toggleLabels">Show Labels</label>
             </div>
-            <div>
-                <!-- <input type="checkbox" id="toggleGrid" value="toggleGrid" onclick="toggleGrid(this.checked)" /input>
+            <!-- <div>
+                <input type="checkbox" id="toggleGrid" value="toggleGrid" onclick="toggleGrid(this.checked)" /input>
                 <label for="toggleGrid">Show Grid</label>
                 <input type="range" id="cellSize" min="10" max="200" step="10" oninput="drawGrid(this.value)">
-                <label for="cellSize">Grid Cell Size</label> -->
-            </div>
+                <label for="cellSize">Grid Cell Size</label>
+            </div> -->
         </div>
         <div style="width: 340px;">
         </div>
