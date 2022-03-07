@@ -386,7 +386,7 @@
         }
 
         function drawDeathsByAge(deaths_age_sex_date) {
-            return drawBarPlot('deathsByAge', deaths_age_sex_date, 'age', 'Deaths By Age', 'Age', 'Deaths')
+            return drawBarPlot('deathsByAge', deaths_age_sex_date, 'age_class', 'Deaths By Age', 'Age', 'Deaths')
         }
 
         function drawBarPlot(svg_id, data, class_key, plotTitle, xLabel, yLabel) {
@@ -399,7 +399,7 @@
 
             const xScale = d3.scale.ordinal()
                 .rangeRoundBands([0, width], .05)
-                .domain(data_summarized.map(d => d.key ));
+                .domain(data_summarized.map(d => d.key ).sort());
             const yScale = d3.scale.linear()
                 .range([height, 0])
                 .domain([0, d3.max(data_summarized, d => d.values )]);
@@ -504,6 +504,14 @@
         }
 
         function addDeathDate(deaths_age_sex, deathdays_parsed) {
+            const map_age_class = {
+                0: '0-10',
+                1: '11-20',
+                2: '21-40',
+                3: '41-60', 
+                4: '61-80', 
+                5: '81+'//'> 80'
+            };
             const deaths_age_sex_date = [];
             // deaths_age_sex is in order of each date of death
             let i = 0;
@@ -513,6 +521,7 @@
                     deaths_age_sex_date.push({
                         ...deaths_age_sex[i],
                         sex: (+deaths_age_sex[i].gender ? 'Female' : 'Male'), // assignment specified gender=1 is female, gender=0 is male
+                        age_class: map_age_class[+deaths_age_sex[i].age],
                         date_parsed: deathDay.date_parsed
                     });
                     i++;
