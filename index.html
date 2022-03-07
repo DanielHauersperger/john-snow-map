@@ -374,19 +374,19 @@
 
         function drawBarPlot(svg_id, data, plotTitle, yLabel) {
             // Modified from https://bl.ocks.org/d3noob/8952219
-            var margin = {top: 20, right: 20, bottom: 70, left: 40},
+            const margin = { top: 20, right: 20, bottom: 70, left: 40 },
                 width = 300 - margin.left - margin.right,
                 height = 300 - margin.top - margin.bottom;
 
-            var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
-            var y = d3.scale.linear().range([height, 0]);
+            const xScale = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+            const yScale = d3.scale.linear().range([height, 0]);
 
-            var xAxis = d3.svg.axis()
-                .scale(x)
+            const xAxis = d3.svg.axis()
+                .scale(xScale)
                 .orient("bottom")
 
-            var yAxis = d3.svg.axis()
-                .scale(y)
+            const yAxis = d3.svg.axis()
+                .scale(yScale)
                 .orient("left")
                 .ticks(10);
 
@@ -397,8 +397,8 @@
                 .attr("transform", 
                     "translate(" + margin.left + "," + margin.top + ")");
 
-            x.domain(data.map(d => d.key ));
-            y.domain([0, d3.max(data, d => d.values )]);
+            xScale.domain(data.map(d => d.key ));
+            yScale.domain([0, d3.max(data, d => d.values )]);
 
             svg.append("g")
                 .attr("class", "x axis")
@@ -424,10 +424,10 @@
                 .data(data)
                 .enter().append("rect")
                 .style("fill", "steelblue")
-                .attr("x", d => x(d.key))
-                .attr("width", x.rangeBand())
-                .attr("y", d => y(d.values))
-                .attr("height", d => height - y(d.values));
+                .attr("x", d => xScale(d.key))
+                .attr("width", xScale.rangeBand())
+                .attr("y", d => yScale(d.values))
+                .attr("height", d => height - yScale(d.values));
         }
 
         function parseDeathdays(deathdays) {
