@@ -382,16 +382,16 @@
         }
 
         function drawDeathsBySex(deaths_age_sex_date) {
-            const data_summarized = summarizeData(deaths_age_sex_date, 'sex');
-            drawBarPlot('deathsBySex', data_summarized, 'Deaths By Sex', 'Sex', 'Deaths')
+            return drawBarPlot('deathsBySex', deaths_age_sex_date, 'sex', 'Deaths By Sex', 'Sex', 'Deaths')
         }
 
         function drawDeathsByAge(deaths_age_sex_date) {
-            const data_summarized = summarizeData(deaths_age_sex_date, 'age');
-            drawBarPlot('deathsByAge', data_summarized, 'Deaths By Age', 'Age', 'Deaths')
+            return drawBarPlot('deathsByAge', deaths_age_sex_date, 'age', 'Deaths By Age', 'Age', 'Deaths')
         }
 
-        function drawBarPlot(svg_id, data, plotTitle, xLabel, yLabel) {
+        function drawBarPlot(svg_id, data, class_key, plotTitle, xLabel, yLabel) {
+            const data_summarized = summarizeData(data, class_key);
+
             // Modified from https://bl.ocks.org/d3noob/8952219
             const margin = { top: 20, right: 20, bottom: 70, left: 40 },
                 width = 300 - margin.left - margin.right,
@@ -399,10 +399,10 @@
 
             const xScale = d3.scale.ordinal()
                 .rangeRoundBands([0, width], .05)
-                .domain(data.map(d => d.key ));
+                .domain(data_summarized.map(d => d.key ));
             const yScale = d3.scale.linear()
                 .range([height, 0])
-                .domain([0, d3.max(data, d => d.values )]);
+                .domain([0, d3.max(data_summarized, d => d.values )]);
 
             const xAxis = d3.svg.axis()
                 .scale(xScale)
@@ -441,14 +441,41 @@
                     .style("text-anchor", "end")
                     .text(yLabel);
 
-            svg.selectAll("bar")
-                .data(data)
+            const bars = svg.selectAll(".bar")
+                .data(data_summarized)
                 .enter().append("rect")
                 .style("fill", "steelblue")
                 .attr("x", d => xScale(d.key))
                 .attr("width", xScale.rangeBand())
                 .attr("y", d => yScale(d.values))
-                .attr("height", d => height - yScale(d.values));
+                .attr("height", d => height - yScale(d.values))
+                .attr('class', 'bar');
+
+            const updateBarPlot = function(extent) {
+                // filter data to only those in the range
+                data_filtered = [];
+                for(const d of data) {
+                    if(extent[0] <= d.date_parsed && d.date_parsed <= extent[1] ) {
+                        data_filtered.push(d);
+                    }
+                }
+                // summarize the filtered data
+                const data_filtered_summarized = summarizeData(data_filtered, class_key);
+
+                // For a given key, find out the 'values' for this row in data_filtered_summarized
+                // (that is, find out how many rows in the filtered data are in this class)
+                const getFilteredValues = function(key) {
+                    const found = data_filtered_summarized.find(df => df.key == key);
+                    if(found) {
+                        return found.values;
+                    }
+                    return 0;
+                }
+                // Only update the height of the bars, so the y axis will remain the same
+                bars.attr("y", d => yScale(getFilteredValues(d.key)))
+                    .attr("height", d => height - yScale(getFilteredValues(d.key)));
+            }
+            return updateBarPlot;
         }
 
         function parseDeathdays(deathdays) {
@@ -495,9 +522,9 @@
 
                         // now draw the map and graph
                         const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex_date);
-                        drawDeathsBySex(deaths_age_sex_date);
-                        drawDeathsByAge(deaths_age_sex_date);
-                        drawTimeGraph(deathdays_parsed, [updateDeathLocations]);
+                        const updateDeathsBySex = drawDeathsBySex(deaths_age_sex_date);
+                        const updateDeathsByAge = drawDeathsByAge(deaths_age_sex_date);
+                        drawTimeGraph(deathdays_parsed, [updateDeathsBySex, updateDeathsByAge, updateDeathLocations]);
                     })
                 })
             })
