@@ -1,10 +1,60 @@
-<h1>
-    About
-</h1>
-<p>
-    This visualization was created by Daniel Hauersperger for the Indiana University Pursue University Indianapolis course INFO H 517: Data Visualization, Analysis, and Design.
-</p>
-<p>
-    The data used by this project comes from <a href='https://khreda.com/teaching/spring22/H517/project1/'>the assignment page</a>, which includes the prompt for the assignment.
-    The data includes the locations of the original streets, pumps, and deaths from John Snow's original map of the London 1854 Cholera Epidemic, along with simulated data for when each person died. This simulated data was based on the assumption that the population in this London neighborhood had similar a age breakdown as the US census in 1850. 
-</p>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Project 1 Documentation</title>
+</head>
+<body>
+    <div style="margin: 80px">
+        <h1>
+            About
+        </h1>
+        <p>
+            This visualization was created by Daniel Hauersperger for the Indiana University Pursue University Indianapolis course INFO H 517: Data Visualization, Analysis, and Design.
+
+            Source code is available at <a href="https://github.com/DanielHauersperger/john-snow-map">https://github.com/DanielHauersperger/john-snow-map</a>.
+        </p>
+        <p>
+            The data used by this project comes from <a href='https://khreda.com/teaching/spring22/H517/project1/'>the assignment page</a>, which includes the prompt for the assignment.
+            The data includes the locations of the original streets, pumps, and deaths from John Snow's original map of the London 1854 Cholera Epidemic, along with simulated data for when each person died. This simulated data was based on the assumption that the population in this London neighborhood had similar a age breakdown as the US census in 1850. 
+        </p>
+
+        <h1>
+            Design Process
+        </h1>
+        <p>
+            For my design process, I wanted to make sure I started iterating as quickly as possible. My first concern was being able to render the streets, since I wasn't sure at first how to do this. As I worked to render the streets, I started to come up with a mind map of how I would structure my map drawing code. I really like to make sure my code has at least a reasonable high-level organization, with reusable/logical components being broken into functions for readability. I decided to implement a drawMap function, which made it easier for me to visualize the specific rendering functions within it. Once I had drawn the streets, I was able to reuse the scaling functions, so drawing the pumps and locations of deaths was a fairly straightforward task.
+        </p>
+        <p>
+            I then had a first draft of the map done, so I started working on the chart of deaths over time. I ended up deciding to use a bar chart, since it seemed like the most clear way to visually assess the relative number of deaths on each date. I came close to instead replacing the bars with a stack of circles (one circle for each death at each time), since this would allow me to consistently use one circle for each death throughout my app; however, this seemed too busy and increased the complexity without adding any additional information. The time chart is the only element of my app that allows selection, so placing the it at the bottom is useful because this visually distinguishes it from the other graphs. In Tableau I get confused on what selections are made and where, so I wanted to make it as clear as possible that the selections are made only in the time graph. Further, placing the map in the top left and making it the largest element shows that it is the most important component of the app.
+        </p>
+        <p>
+            While implementing the time graph, I had a few ideas for how to select time points for further analysis. I ended up deciding to build on <a href="https://stackoverflow.com/a/46861080">this very useful stackoverflow answer</a>, which provided a great foundation for using d3's brushing functionality to manipulate a rectangle to select regions of a plot. My use case was quite different though, so I built on <a href="https://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13">this example for a time axis with rotated tick labels</a>, and <a href="https://stackoverflow.com/questions/34030574/mouse-over-event-on-axis-label-d3-js-javascript">this example for hovering over axis ticks</a>. From there I was able to add a new idea I had, which was to allow mousing over a date to select all days up until that date. The user can then move the mouse elsewhere to go back to their previous selection, or they can click the date to confirm the selection.
+        </p>
+        <p>
+            I then wanted to implement scrolling, so I started with <a href="https://embed.plnkr.co/q2gv0VOI5cAmfpyNXEVA/">this very basic example</a>". The panning was very jittery, but I fixed it using a suggestion to transform only the child element in <a href="https://stackoverflow.com/a/10999391">this stackoverflow answer</a>. This didn't allow panning and zooming when hovering over a background part of the graph though, so I found a style that fixed it based on <a href="https://stackoverflow.com/a/49739738">another stackoverflow answer</a>.
+        </p>
+        <p>
+            I was now ready to start labeling the graph. I put the map name in a box because I felt like the text was competing for attention with the elements of the map. I had been trying to determine the locations to place the major street and location names on the map with trial and error, but it was taking a lot of time. I then decided to download <a href="https://www.microsoft.com/en-us/p/measure-pixels/9n6vncv9lf5k#activetab=pivot:overviewtab">this Chrome extension</a> to let me get the distance between places on the screen. I could then click variance locations on <a href="https://en.wikipedia.org/wiki/1854_Broad_Street_cholera_outbreak#/media/File:Snow-cholera-map-1.jpg">the original map</a> and estimate the distance. I was also able to ensure the width to height ratio was the same as the original, for scaling.
+
+            But then even that tool involved some guess and check work, so I considered using developer tools to identify the path svg elements corresponding to major streets, so then I could add labels to them. But the buildings don't have paths, so that wouldn't help for them. I realized I could just add a click event to the map, and log the location where I click - so that's how I figured out where to put the labels for the streets and buildings. This saved me a lot of effort compared to my other approaches.
+
+            The labels were tough to read because of other elements on the screen, so I adjusted for this in two ways. First, I added a white background to the text based on <a href="https://stackoverflow.com/a/41902064">this stackoverflow answer</a> to visually distinguish the labels from the other elements on the map. I next added a checkbox to dynamically show and hide the labels, so the labels would not always obscure the other elements on the map. I put the checkbox outside of the map, so it will not be included when any users want to capture a screenshot of the map.
+
+            To show the age and sex for each person on the map, I added a basic tooltip using a title element, since this allowed adding this information to the graph without it competing for visual attention when looking at other aspects of the app.
+        </p>
+        <p>
+            It was finally time to add my bar plots to inspect the distribution of deaths by sex and age. To do this I built on <a href="https://bl.ocks.org/d3noob/8952219">this bl.ocks example</a>, which gave me a great start. I again had each chart return an update function so I could have the time graph call it any time the selected date range changes. I realized in the map and time graph I used steelblue to show selected points and gray to show unselected ones, but I was not showing unselected points in the bar plots. This gave me the idea of including a gray reference bar, so then the bar plots effectively show roughly what fraction of total points are selected, thus allowing consistency in how light gray versus blue is treated among the different plots and map.  I could have added a reference line for the percentage of people by age in the general population, but I was more interested in consistency with the color schema.
+        </p>
+        <p>
+            I should have done this earlier, but at the end I finally ran my tool through a color blindness checker. I had tried to keep potential color blind users in mind from the start though, so I expected to be fine. However, when using <a href="https://www.color-blindness.com/coblis-color-blindness-simulator/">Coblis — Color Blindness Simulator</a>, I found out that users with monochromacy would not be able to distinguish between the red pumps and steel blue locations of deaths. For this reason I changed the color of the pumps, to maximize contrast. As shown in the simulated image below, all functionality of the chart is now applicable for users with monochromacy.
+        </p>
+        <image src="monochromacy_simulator.jpg"></image>
+        <p>
+            While building and using my app, I was hoping some big findings would jump out at me, but none did. Of course I could clearly see evidence for the original hypothesis that cases were clustered around the Broad Street Pump though - even when moving through time, this clustering was very apparent. I kept interacting with the graph, expecting I might find some other interesting trend when filtering over various subsets of time. For example, perhaps the distribution of deaths by sex changes during a certain subset of the time period, or maybe deaths on a certain day tended to be in a particular portion of the cluster. My efforts at exploration did not lead me to such a finding though.
+        </p>
+        <p> Nevertheless, I did notice an interesting trend that did not vary with time; when comparing my bar chart of deaths by age group to the general population distribution, I found that people in the oldest (>80 years) and youngest (0-10 years) age groups died at a much higher rate than their expected values based on the population makeup.
+        </p>
+    </div>
+</body>
+</htm>
