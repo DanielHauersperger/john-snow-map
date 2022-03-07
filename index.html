@@ -540,10 +540,10 @@
 
         // This loading logic is ugly, but I'm using D3 v3 for this class and the fetch API 
         // isn't supported until v5 (see https://stackoverflow.com/a/49604124)
-        d3.json('streets.json', function (streets) {
-            d3.csv('pumps.csv', function (pumps) {
-                d3.csv('deaths_age_sex.csv', function (deaths_age_sex) {
-                    d3.csv('deathdays.csv', function(deathdays) {
+        d3.json('data/streets.json', function (streets) {
+            d3.csv('data/pumps.csv', function (pumps) {
+                d3.csv('data/deaths_age_sex.csv', function (deaths_age_sex) {
+                    d3.csv('data/deathdays.csv', function(deathdays) {
                         // clean and join the data
                         const deathdays_parsed = parseDeathdays(deathdays);
                         const deaths_age_sex_date = addDeathDate(deaths_age_sex, deathdays_parsed);
