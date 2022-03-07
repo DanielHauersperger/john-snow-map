@@ -78,8 +78,8 @@
 
     <div style="display: flex; justify-content: center;">
         <div>
-            <svg transform="translate(40,40)" id="timeGraph" width="800" height="300">
-                <g></g>
+            <svg id="timeGraph" width="800" height="300">
+                <g transform="translate(40,40)"></g>
             </svg>
         </div>
     </div>
@@ -253,14 +253,14 @@
 
         function drawTimeGraph(deathdays, updateFunctions) {                        
             const X_DOMAIN = d3.extent(deathdays, day => day.date_parsed),
-                Y_DOMAIN = d3.extent(deathdays, day => day.deaths_num);
+                Y_DOMAIN = [0, d3.max(deathdays, day => day.deaths_num)];
 
             const xScale = d3.time.scale()
                 .domain(X_DOMAIN)
                 .range([0, MAP_WIDTH]);
             const yScale = d3.scale.linear()
                 .domain(Y_DOMAIN)
-                .range([0, TIME_GRAPH_HEIGHT]);
+                .range([TIME_GRAPH_HEIGHT, 0]);
             const xAxis = d3.svg.axis()
                 .scale(xScale)
                 .ticks(d3.time.day)
@@ -271,6 +271,11 @@
                     return dayOfYear % 2 == 0 ? '' : d3.time.format('%b %d')(x);
                 })
                 .orient('bottom');
+            // y Axis is based on https://bl.ocks.org/d3noob/8952219
+            const yAxis = d3.svg.axis()
+                .scale(yScale)
+                .orient("left")
+                .ticks(8);
 
             var g = d3.select('#timeGraph').select('g');
 
@@ -287,10 +292,10 @@
                 .data(deathdays)
                 .enter()
                 .append('rect')
-                .attr('height', d => yScale(d.deaths_num))
+                .attr('height', d => TIME_GRAPH_HEIGHT - yScale(d.deaths_num))
                 .attr('width', BAR_WIDTH)
                 .attr('x', d => xScale(d.date_parsed) - BAR_WIDTH/2)
-                .attr('y', d => TIME_GRAPH_HEIGHT - yScale(d.deaths_num));
+                .attr('y', d => yScale(d.deaths_num));
 
             const brushContainer = g.append('g')
                 .attr('class', 'brush')
@@ -325,13 +330,27 @@
                     .call(brush.event);
             }
 
-            g.append('g').attr('class', 'x axis')
+            const xAxis_g = g.append('g').attr('class', 'x axis')
                 .call(xAxis)
-                .attr('transform', `translate(0, ${TIME_GRAPH_HEIGHT})`)
-                // axis text rotation logic (following three lines) modified from https://stackoverflow.com/a/35449652
-                .selectAll('text')
+                .attr('transform', `translate(0, ${TIME_GRAPH_HEIGHT})`);
+            // axis text rotation logic (following three lines) modified from https://stackoverflow.com/a/35449652
+            xAxis_g.selectAll('text')
                     .style('text-anchor', 'start')
                     .attr('transform', 'rotate(55 0 12)');
+            xAxis_g.append("text")
+                    .attr("x", MAP_WIDTH/2)
+                    .attr("y", 60)
+                    // .style("text-anchor", "end")
+                    .text('Date');
+            g.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "end")
+                    .attr("x", -80)
+                    .attr("y", -30)
+                    .text('Deaths');;
 
             // I thought it would be cool if the user could select times by hovering over parts of the axis
             let previousExtent = [];
