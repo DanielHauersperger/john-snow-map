@@ -67,11 +67,11 @@
             </svg>
         </div>
         <div style="width: 340px; display: inline-block">
-            <svg id='deathsBySex' transform="translate(40,40)" width="300" height="300">
-                <rect fill='black' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
+            <svg transform="translate(40,40)" id="deathsBySex" width="300" height="300">
+                <g></g>
             </svg>
             <svg id='deathsByAge' transform="translate(40,80)" width="300" height="300">
-                <rect fill='blue' stroke='black' stroke-width='4px' x='0' y='0' width='100%' height='100%''></rect>
+                <g></g>
             </svg>
         </div>  
     </div>
@@ -88,7 +88,8 @@
         const MAP_WIDTH = 640,
             MAP_HEIGHT = 600,
             TIME_GRAPH_HEIGHT = 200,
-            BAR_WIDTH = 12;
+            BAR_WIDTH = 12,
+            SIDE_GRAPH_WIDTH = 300;
 
         function getMapScales(streets) {
             // Get the min and max values from the streets array for x and y
@@ -353,6 +354,82 @@
             });
         }
 
+        function summarizeData(data, class_key) {
+            // Modified from http://bl.ocks.org/phoebebright/raw/3176159/
+            return d3.nest()
+                .key(d => d[class_key])
+                .rollup(leaves => leaves.length)
+                .entries(data)
+        }
+
+        function drawDeathsBySex(deaths_age_sex_date) {
+            const data_summarized = summarizeData(deaths_age_sex_date, 'sex');
+            drawBarPlot('deathsBySex', data_summarized, 'Deaths By Sex', 'Deaths')
+        }
+
+        function drawDeathsByAge(deaths_age_sex_date) {
+            const data_summarized = summarizeData(deaths_age_sex_date, 'age');
+            drawBarPlot('deathsByAge', data_summarized, 'Deaths By Age', 'Deaths')
+        }
+
+        function drawBarPlot(svg_id, data, plotTitle, yLabel) {
+            // Modified from https://bl.ocks.org/d3noob/8952219
+            var margin = {top: 20, right: 20, bottom: 70, left: 40},
+                width = 300 - margin.left - margin.right,
+                height = 300 - margin.top - margin.bottom;
+
+            var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+            var y = d3.scale.linear().range([height, 0]);
+
+            var xAxis = d3.svg.axis()
+                .scale(x)
+                .orient("bottom")
+
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                .ticks(10);
+
+            var svg = d3.select(`#${svg_id}`)
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", 
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+            x.domain(data.map(d => d.key ));
+            y.domain([0, d3.max(data, d => d.values )]);
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", "-.55em")
+                .attr("transform", "rotate(-90)" );
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text(yLabel);
+
+            svg.selectAll("bar")
+                .data(data)
+                .enter().append("rect")
+                .style("fill", "steelblue")
+                .attr("x", d => x(d.key))
+                .attr("width", x.rangeBand())
+                .attr("y", d => y(d.values))
+                .attr("height", d => height - y(d.values));
+        }
+
         function parseDeathdays(deathdays) {
             // Add keys for the parsed date and deaths as a number to each row
             return deathdays.map(day => {
@@ -398,6 +475,9 @@
                         // now draw the map and graph
                         const updateDeathLocations = drawMap(streets, pumps, deaths_age_sex_date);
                         drawTimeGraph(deathdays_parsed, [updateDeathLocations]);
+
+                        drawDeathsBySex(deaths_age_sex_date);
+                        drawDeathsByAge(deaths_age_sex_date);
                     })
                 })
             })
