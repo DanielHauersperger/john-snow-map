@@ -354,7 +354,7 @@
 
             // I thought it would be cool if the user could select times by hovering over parts of the axis
             let previousExtent = [];
-            d3.selectAll('.tick').on('mouseover', function(d, i){
+            xAxis_g.selectAll('.tick').on('mouseover', function(d, i){
                 previousExtent = brush.extent();
                 // When an axis tick is moused over, select all data up to the selected date
                 brushContainer.transition()
