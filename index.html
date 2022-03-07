@@ -441,6 +441,19 @@
                     .style("text-anchor", "end")
                     .text(yLabel);
 
+            // Add a light gray bar as a reference (to compare the height of bars when filtering vs not filtering)
+            svg.selectAll(".barRef")
+                .data(data_summarized)
+                .enter()
+                .append("rect")
+                .style("fill", "black")
+                .style("fill-opacity", 0.125)
+                .attr("x", d => xScale(d.key))
+                .attr("width", xScale.rangeBand())
+                .attr("y", d => yScale(d.values))
+                .attr("height", d => height - yScale(d.values));
+
+            // Add a steel blue bar for the selected points (this starts with all selected)
             const bars = svg.selectAll(".bar")
                 .data(data_summarized)
                 .enter().append("rect")
@@ -448,9 +461,9 @@
                 .attr("x", d => xScale(d.key))
                 .attr("width", xScale.rangeBand())
                 .attr("y", d => yScale(d.values))
-                .attr("height", d => height - yScale(d.values))
-                .attr('class', 'bar');
+                .attr("height", d => height - yScale(d.values));
 
+            // Update the heights of the selected (steelblue) bars
             const updateBarPlot = function(extent) {
                 // filter data to only those in the range
                 data_filtered = [];
@@ -461,7 +474,7 @@
                 }
                 // summarize the filtered data
                 const data_filtered_summarized = summarizeData(data_filtered, class_key);
-
+            
                 // For a given key, find out the 'values' for this row in data_filtered_summarized
                 // (that is, find out how many rows in the filtered data are in this class)
                 const getFilteredValues = function(key) {
